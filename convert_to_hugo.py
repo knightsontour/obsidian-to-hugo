@@ -202,7 +202,7 @@ def convert_wikilinks(content: str, slug_map: dict, index_mode: bool = False) ->
             # Try slugifying directly as a fallback
             slug = filename_to_slug(target_stem)
 
-        url = f'{slug}/' if index_mode else f'../{slug}/'
+        url = f'posts/{slug}/' if index_mode else f'../{slug}/'
         label = display or slugify(target_stem).replace('-', ' ').title()
         return f'[{label}]({url})'
 
@@ -303,14 +303,17 @@ def main():
             report['skipped'].append(f'{src_path.name}: {e}')
             print(f'  ✗  {src_path.name}: {e}')
 
-    # Handle README -> _index.md
+    # Handle README -> content/_index.md (site homepage)
     readme = src_dir / 'README.md'
     if readme.exists():
         raw = readme.read_text(encoding='utf-8')
         raw, _ = convert_image_embeds(raw, available_assets)
         raw = convert_wikilinks(raw, slug_map, index_mode=True)
-        index_path = posts_dir / '_index.md'
+        content_dir = out_dir / 'content'
+        index_path = content_dir / '_index.md'
         index_path.write_text(raw, encoding='utf-8')
+        # Minimal section index so Hugo can list posts at /posts/
+        (posts_dir / '_index.md').write_text('---\ntitle: Posts\n---\n', encoding='utf-8')
         print(f'  ✓  README.md -> _index.md')
 
     # Copy assets
