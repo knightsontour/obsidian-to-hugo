@@ -7,6 +7,7 @@ Converts an Obsidian travel blog vault to a Hugo-ready content directory.
 - **Renames files** to URL-friendly slugs — `13 - Yosemite a Paradise on Earth.md` → `yosemite-a-paradise-on-earth.md`
 - **Converts image embeds** — all Obsidian `![[...]]` variants become standard markdown with `/assets/` paths
 - **Converts wikilinks** — `[[13 - Yosemite a Paradise on Earth|Next →]]` → `[Next →](../yosemite-a-paradise-on-earth/)`
+- **Filters by publish flag** — only notes with `publish: true` in their front matter are converted; others are skipped
 - **Cleans front matter** — removes Obsidian-specific fields (`prev`, `next`, `trip`, `chapter`), adds `slug` and `title`
 - **Copies assets** — images copied as-is to `static/assets/`
 - **Reports missing images** — lists any image references that couldn't be resolved
