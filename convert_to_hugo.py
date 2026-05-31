@@ -107,7 +107,7 @@ def process_front_matter(fm_text: str, slug: str, title: str) -> str:
         if match:
             key = match.group(1)
             if key in REMOVE_FIELDS:
-                skip_next = False  # single-line fields only for these
+                skip_next = True
                 continue
 
         out.append(line)
@@ -128,7 +128,6 @@ def extract_title(content: str) -> str:
         title = re.sub(r'\s*[—–]\s*', ': ', title)
         # Escape quotes and # for YAML
         title = title.replace('"', '\\"')
-        title = title.replace('#', '\\#')
         return title
     return ''
 
