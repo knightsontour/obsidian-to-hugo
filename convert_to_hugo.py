@@ -167,10 +167,12 @@ def convert_image_embeds(content: str, available_assets: set) -> tuple[str, list
 # Wikilink conversion
 # ---------------------------------------------------------------------------
 
-def convert_wikilinks(content: str, slug_map: dict) -> str:
+def convert_wikilinks(content: str, slug_map: dict, index_mode: bool = False) -> str:
     """
     Convert [[target|display]] and [[target]] wikilinks to Hugo relative links.
     slug_map: dict of {obsidian_filename_stem -> slug}
+    index_mode: True when converting _index.md (served at /posts/), so links
+                use slug/ instead of ../slug/ to avoid resolving one level too high.
     """
 
     def replace_wikilink(match):
@@ -190,7 +192,7 @@ def convert_wikilinks(content: str, slug_map: dict) -> str:
 
         # README maps to the blog index
         if target_stem.upper() == 'README':
-            url = '../'
+            url = '../' if not index_mode else './'
             label = display or 'Contents'
             return f'[{label}]({url})'
 
@@ -200,7 +202,7 @@ def convert_wikilinks(content: str, slug_map: dict) -> str:
             # Try slugifying directly as a fallback
             slug = filename_to_slug(target_stem)
 
-        url = f'../{slug}/'
+        url = f'{slug}/' if index_mode else f'../{slug}/'
         label = display or slugify(target_stem).replace('-', ' ').title()
         return f'[{label}]({url})'
 
@@ -306,7 +308,7 @@ def main():
     if readme.exists():
         raw = readme.read_text(encoding='utf-8')
         raw, _ = convert_image_embeds(raw, available_assets)
-        raw = convert_wikilinks(raw, slug_map)
+        raw = convert_wikilinks(raw, slug_map, index_mode=True)
         index_path = posts_dir / '_index.md'
         index_path.write_text(raw, encoding='utf-8')
         print(f'  ✓  README.md -> _index.md')
