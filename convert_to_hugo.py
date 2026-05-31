@@ -74,6 +74,21 @@ def wikilink_target_to_slug(target: str) -> str:
     return filename_to_slug(target)
 
 
+def is_publishable(src_path: Path) -> bool:
+    """Return True only if the note has publish: true in its front matter."""
+    try:
+        raw = src_path.read_text(encoding='utf-8')
+        fm_match = re.match(r'^---\n(.*?)\n---', raw, re.DOTALL)
+        if not fm_match:
+            return False
+        for line in fm_match.group(1).splitlines():
+            if re.match(r'^publish\s*:\s*true\s*$', line.strip(), re.IGNORECASE):
+                return True
+        return False
+    except Exception:
+        return False
+
+
 # ---------------------------------------------------------------------------
 # Front matter processing
 # ---------------------------------------------------------------------------
@@ -277,7 +292,8 @@ def main():
 
     # Build slug map from all .md files (excluding README)
     md_files = [f for f in src_dir.glob('*.md') if f.stem.upper() != 'README']
-    slug_map = {f.stem: filename_to_slug(f.stem) for f in md_files}
+    slug_map = {f.stem: filename_to_slug(f.stem)
+                for f in md_files if is_publishable(f)}
 
     # Build set of available asset filenames
     assets_src = src_dir / 'assets'
@@ -290,6 +306,11 @@ def main():
 
     # Convert each .md file
     for src_path in sorted(md_files):
+        if not is_publishable(src_path):
+            report['skipped'].append(f'{src_path.name}: no publish: true flag')
+            print(f'  –  {src_path.name} (skipped — no publish flag)')
+            continue
+
         slug = filename_to_slug(src_path.stem)
         dest_filename = f'{slug}.md'
         dest_path = posts_dir / dest_filename
